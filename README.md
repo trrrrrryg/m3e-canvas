@@ -109,9 +109,9 @@ Or on Windows: double-click `start-desktop.bat` (installs deps if needed, then b
 
 In the desktop build, click **Connect** to start a local HTTP + WebSocket server (default TCP `19876`). A phone or tablet on the **same Wi‑Fi** can scan the QR, mirror the desktop window, and send pen/touch/gesture/text back into the canvas.
 
-![Tablet connect walkthrough](docs/demo-assets/tablet-connect-walkthrough.gif)
+![Tablet connect walkthrough (real UI)](docs/demo-assets/ui-shots/frame-9.png)
 
-<p align="center"><sub>Full connect walkthrough: install → Connect → QR → same Wi‑Fi → pen mirror. (<a href="docs/demo-assets/tablet-connect-walkthrough.mp4">mp4 with audio</a> · live screen recording: <a href="docs/demo-assets/electron-tablet-demo.mp4">electron-tablet-demo.mp4</a>)</sub></p>
+<p align="center"><sub>Real desktop UI + Connect dialog (screenshots from this build). Full walkthrough (28s, audio): <a href="docs/demo-assets/tablet-connect-full.mp4">tablet-connect-full.mp4</a> · simpler illustrated version: <a href="docs/demo-assets/tablet-connect-walkthrough.mp4">tablet-connect-walkthrough.mp4</a> · live device recording: <a href="docs/demo-assets/electron-tablet-demo.mp4">electron-tablet-demo.mp4</a></sub></p>
 
 **Connect in four steps**
 
@@ -281,7 +281,9 @@ npm run build      # 静态导出到 ./out
 3. 点击应用右下角 **Connect**，出现二维码与 URL。
 4. 平板扫码后可镜像桌面，并用笔/触控/手势回传到画布。
 
-![平板连接演示](docs/demo-assets/tablet-connect-walkthrough.gif)
+![平板连接演示（真实界面）](docs/demo-assets/ui-shots/frame-9.png)
+
+完整 28 秒演示（真实软件界面）：[tablet-connect-full.mp4](docs/demo-assets/tablet-connect-full.mp4)
 
 完整说明与技术清单见上文英文 **Desktop app (Electron)** / **Tablet mirror** 小节；设计笔记见 [docs/tablet-optimization-plan.md](docs/tablet-optimization-plan.md)。
 
