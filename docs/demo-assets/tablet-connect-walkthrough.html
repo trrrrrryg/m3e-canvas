@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>M3E Canvas — 平板连接全步骤</title>
+  <style>
+    :root {
+      --bg: #0e1016;
+      --panel: #1a1d27;
+      --win: #222532;
+      --ink: #f4f1f7;
+      --muted: #a8a4b8;
+      --accent: #7c5cff;
+      --accent-soft: rgba(124, 92, 255, 0.22);
+      --canvas: #f3e8ef;
+      --ok: #4dbb6c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden; background: var(--bg);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      color: var(--ink);
+    }
+    #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+    .scene {
+      position: absolute; inset: 0; opacity: 0; pointer-events: none;
+      display: grid; place-items: center; padding: 48px 64px;
+    }
+    .scene.on { opacity: 1; }
+    .title {
+      font-size: 54px; font-weight: 800; letter-spacing: 0.02em; line-height: 1.15;
+    }
+    .sub { font-size: 26px; color: var(--muted); margin-top: 14px; font-weight: 500; }
+    .step-chip {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 18px; border-radius: 999px; background: var(--accent-soft);
+      color: #d6ccff; font-size: 22px; font-weight: 700; margin-bottom: 18px;
+    }
+    .row { display: flex; align-items: center; justify-content: center; gap: 56px; }
+    .pc {
+      width: 860px; height: 520px; background: var(--win); border-radius: 18px;
+      border: 1px solid #33364a; box-shadow: 0 30px 80px rgba(0,0,0,.45);
+      overflow: hidden; position: relative;
+    }
+    .pc-bar {
+      height: 42px; display: flex; align-items: center; gap: 10px;
+      padding: 0 14px; background: #161822; border-bottom: 1px solid #2c2f3d;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .pc-body { height: calc(100% - 42px); background: var(--canvas); position: relative; }
+    .phone-frame {
+      width: 420px; height: 780px; border-radius: 36px; background: #11131a;
+      border: 8px solid #2a2d3a; box-shadow: 0 24px 60px rgba(0,0,0,.4);
+      position: relative; overflow: hidden;
+    }
+    .phone-screen {
+      position: absolute; inset: 12px; border-radius: 24px; background: #0e0f13;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px; gap: 16px;
+    }
+    .connect-btn {
+      position: absolute; right: 22px; bottom: 22px;
+      background: var(--accent); color: #fff; font-weight: 800; font-size: 22px;
+      padding: 14px 22px; border-radius: 28px; display: inline-flex; gap: 10px; align-items: center;
+      box-shadow: 0 10px 28px rgba(124,92,255,.4);
+    }
+    .cursor {
+      width: 28px; height: 28px; position: absolute; z-index: 5;
+      background: radial-gradient(circle at 30% 30%, #fff, #ddd 60%, #999);
+      clip-path: polygon(0 0, 0 100%, 28% 72%, 48% 100%, 62% 90%, 42% 60%, 100% 55%);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+    }
+    .ripple {
+      position: absolute; width: 24px; height: 24px; border-radius: 50%;
+      border: 3px solid var(--accent); opacity: 0; pointer-events: none;
+    }
+    .dialog {
+      width: 480px; padding: 28px; border-radius: 28px; background: #2a2738;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45); text-align: center;
+    }
+    .qr {
+      width: 220px; height: 220px; margin: 12px auto 16px; background: #fff;
+      border-radius: 16px; display: grid; place-items: center;
+    }
+    .qr-inner {
+      width: 180px; height: 180px;
+      background:
+        linear-gradient(#111 0 0) 0 0/40% 40% no-repeat,
+        linear-gradient(#111 0 0) 100% 0/40% 40% no-repeat,
+        linear-gradient(#111 0 0) 0 100%/40% 40% no-repeat,
+        linear-gradient(#111 0 0) 100% 100%/40% 40% no-repeat,
+        repeating-linear-gradient(90deg,#111 0 8px,transparent 8px 16px) center/70% 12% no-repeat,
+        repeating-linear-gradient(#111 0 8px,transparent 8px 16px) center/12% 70% no-repeat,
+        #fff;
+    }
+    .url {
+      font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 15px;
+      color: #c9c3dc; word-break: break-all; background: #1d1b28; border-radius: 12px;
+      padding: 10px 12px; margin-top: 8px;
+    }
+    .status { margin-top: 14px; color: var(--muted); font-size: 18px; display:flex; gap:8px; justify-content:center; align-items:center; }
+    .led { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); }
+    .wifi {
+      width: 120px; height: 90px; position: relative; opacity: .9;
+    }
+    .wifi span {
+      position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+      border: 4px solid var(--accent); border-radius: 50%; border-bottom-color: transparent;
+      border-left-color: transparent; border-right-color: transparent;
+    }
+    .wifi span:nth-child(1){ width:24px; height:24px; bottom:28px; }
+    .wifi span:nth-child(2){ width:48px; height:48px; bottom:18px; opacity:.75;}
+    .wifi span:nth-child(3){ width:76px; height:76px; bottom:6px; opacity:.45;}
+    .steps { display:flex; flex-direction:column; gap:14px; max-width:520px; }
+    .step {
+      display:flex; gap:14px; align-items:flex-start; background:#1a1d28; border:1px solid #2d3144;
+      border-radius:16px; padding:14px 16px; opacity:.35;
+    }
+    .step.on { opacity:1; border-color: var(--accent); }
+    .step b { color: var(--accent); font-size: 20px; min-width: 28px; }
+    .step p { font-size: 20px; line-height: 1.4; color: var(--ink); }
+    .pen-ring {
+      position:absolute; width:28px; height:28px; border-radius:50%;
+      border:3px solid rgba(124,92,255,.8); background: rgba(124,92,255,.15);
+      transform: translate(-50%,-50%);
+    }
+    .ink-path { position:absolute; inset:8%; border: none; }
+    .footer-card {
+      width: 1100px; background: linear-gradient(180deg,#1a1d28,#141722);
+      border: 1px solid #2d3144; border-radius: 28px; padding: 40px 48px;
+    }
+    .footer-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 28px; }
+    .f-item {
+      background:#1e2230; border-radius:18px; padding:22px 18px; border:1px solid #32364c;
+    }
+    .f-item h4 { font-size: 22px; margin-bottom: 8px; color:#d9d0ff; }
+    .f-item p { font-size: 16px; color: var(--muted); line-height: 1.45; }
+    .accent { color: var(--accent); }
+    .label-top {
+      position:absolute; top:40px; left:64px; font-size:18px; letter-spacing:.18em;
+      text-transform:uppercase; color:#6d6880; font-weight:700;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div class="label-top">M3E CANVAS DESKTOP</div>
+
+    <!-- S1 -->
+    <section class="scene" id="s1">
+      <div style="text-align:center">
+        <div class="step-chip">功能演示</div>
+        <div class="title">平板连接桌面画布</div>
+        <div class="sub">同一 Wi‑Fi · 扫码 · 即写即同步</div>
+        <div class="row" style="margin-top:48px">
+          <div class="pc" id="s1pc" style="transform:scale(.92)">
+            <div class="pc-bar"><i class="dot" style="background:#ff5f57"></i><i class="dot" style="background:#febc2e"></i><i class="dot" style="background:#28c840"></i><span style="margin-left:8px;color:#aaa;font-size:14px">M3E Canvas</span></div>
+            <div class="pc-body"></div>
+          </div>
+          <div class="wifi" id="s1wifi"><span></span><span></span><span></span></div>
+          <div class="phone-frame" id="s1phone" style="transform:scale(.72)">
+            <div class="phone-screen"><div style="color:#8a8f9b;font-size:20px">等待连接</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S2 -->
+    <section class="scene" id="s2">
+      <div style="text-align:center">
+        <div class="step-chip">步骤 1 · 打开桌面版</div>
+        <div class="title" style="font-size:42px">点击右下角 Connect</div>
+        <div class="pc" id="s2pc" style="width:980px;height:580px;margin-top:28px">
+          <div class="pc-bar"><i class="dot" style="background:#ff5f57"></i><i class="dot" style="background:#febc2e"></i><i class="dot" style="background:#28c840"></i><span style="margin-left:8px;color:#aaa;font-size:14px">M3E Canvas</span></div>
+          <div class="pc-body">
+            <div class="connect-btn" id="s2btn">▦ Connect</div>
+            <div class="cursor" id="s2cursor" style="left:70%;top:70%"></div>
+            <div class="ripple" id="s2ripple"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S3 -->
+    <section class="scene" id="s3">
+      <div style="text-align:center">
+        <div class="step-chip">步骤 2 · 获取连接地址</div>
+        <div class="title" style="font-size:42px;margin-bottom:28px">对话框显示二维码与 URL</div>
+        <div class="dialog" id="s3dialog">
+          <div style="font-weight:800;font-size:24px">Connect a tablet</div>
+          <div class="qr"><div class="qr-inner"></div></div>
+          <div class="url">http://192.168.1.24:19876/?token=••••</div>
+          <div class="status"><i class="led"></i> Waiting for a device…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S4 -->
+    <section class="scene" id="s4">
+      <div class="row" style="align-items:flex-start">
+        <div style="text-align:left;max-width:640px">
+          <div class="step-chip">步骤 3 · 平板扫码</div>
+          <div class="title" style="font-size:40px">同一 Wi‑Fi 扫码连接</div>
+          <div class="steps" style="margin-top:24px">
+            <div class="step" id="st1"><b>1</b><p>电脑与平板连<strong class="accent">同一 Wi‑Fi</strong></p></div>
+            <div class="step" id="st2"><b>2</b><p>平板浏览器扫描桌面二维码</p></div>
+            <div class="step" id="st3"><b>3</b><p>打开镜像页，开始笔触遥控</p></div>
+          </div>
+        </div>
+        <div class="row" style="gap:28px">
+          <div class="pc" style="width:520px;height:320px" id="s4pc">
+            <div class="pc-bar" style="height:30px"></div>
+            <div class="pc-body" style="height:calc(100% - 30px);display:grid;place-items:center">
+              <div class="qr" style="width:150px;height:150px;margin:0"><div class="qr-inner" style="width:110px;height:110px"></div></div>
+            </div>
+          </div>
+          <div class="phone-frame" style="width:280px;height:520px" id="s4phone">
+            <div class="phone-screen">
+              <div class="qr" style="width:160px;height:160px;margin:0"><div class="qr-inner" style="width:120px;height:120px"></div></div>
+              <div style="color:#9aa0ac;font-size:14px">扫码中…</div>
+              <div id="scanline" style="position:absolute;left:30px;right:30px;height:3px;background:var(--accent);box-shadow:0 0 16px var(--accent);opacity:0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S5 -->
+    <section class="scene" id="s5">
+      <div class="row">
+        <div class="pc" style="width:900px;height:520px" id="s5pc">
+          <div class="pc-bar"><i class="dot" style="background:#ff5f57"></i><i class="dot" style="background:#febc2e"></i><i class="dot" style="background:#28c840"></i></div>
+          <div class="pc-body">
+            <svg class="ink-path" id="ink" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path id="inkPath" d="M20 70 C35 40, 45 80, 58 50 S80 30, 88 42" fill="none" stroke="#7c5cff" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <div class="pen-ring" id="pen" style="left:20%;top:70%"></div>
+          </div>
+        </div>
+        <div class="phone-frame" style="width:300px;height:560px" id="s5phone">
+          <div class="phone-screen" style="background:#151820">
+            <div style="position:absolute;inset:10px;border-radius:16px;background:var(--canvas);overflow:hidden">
+              <svg viewBox="0 0 100 100" style="width:100%;height:100%">
+                <path id="inkPathMirror" d="M20 70 C35 40, 45 80, 58 50 S80 30, 88 42" fill="none" stroke="#7c5cff" stroke-width="2.2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div style="position:absolute;bottom:18px;color:#9aa0ac;font-size:13px">PEN CANVAS</div>
+          </div>
+        </div>
+      </div>
+      <div style="position:absolute;left:0;right:0;top:72px;text-align:center">
+        <div class="step-chip">步骤 4 · 笔触镜像</div>
+        <div class="title" style="font-size:40px">在平板上书写，桌面同步</div>
+      </div>
+    </section>
+
+    <!-- S6 -->
+    <section class="scene" id="s6">
+      <div class="footer-card" id="s6card">
+        <div class="step-chip">连接要点</div>
+        <div class="title" style="font-size:44px">三步即可开始创作</div>
+        <div class="footer-grid">
+          <div class="f-item"><h4>1 安装桌面版</h4><p>Releases 下载 NSIS 或便携包，启动后出现 Connect</p></div>
+          <div class="f-item"><h4>2 同一局域网</h4><p>电脑与平板连同一 Wi‑Fi；防火墙放行 TCP 19876</p></div>
+          <div class="f-item"><h4>3 扫码连接</h4><p>平板扫码打开镜像页，笔/触控/手势回传桌面</p></div>
+        </div>
+        <p class="sub" style="margin-top:28px">github.com/trrrrrryg/m3e-canvas-desktop</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const scenes = ["s1","s2","s3","s4","s5","s6"];
+    // timings in ms
+    const T = [0, 3000, 5500, 9000, 12500, 17500, 20000];
+    const $ = (id) => document.getElementById(id);
+
+    function show(i) {
+      scenes.forEach((id, idx) => $(id).classList.toggle("on", idx === i));
+    }
+
+    function tween(el, prop, from, to, dur, delay=0, ease="cubic-bezier(.22,1,.36,1)") {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          el.style.transition = `${prop} ${dur}ms ${ease}`;
+          el.style[prop] = to;
+          setTimeout(resolve, dur);
+        }, delay);
+      });
+    }
+
+    async function run() {
+      // S1
+      show(0);
+      $("s1pc").style.opacity = "0";
+      $("s1phone").style.opacity = "0";
+      $("s1wifi").style.opacity = "0";
+      await new Promise(r => setTimeout(r, 30));
+      $("s1pc").style.transition = "opacity 500ms, transform 700ms cubic-bezier(.22,1,.36,1)";
+      $("s1pc").style.opacity = "1";
+      $("s1pc").style.transform = "scale(1)";
+      $("s1phone").style.transition = "opacity 500ms 100ms, transform 700ms cubic-bezier(.22,1,.36,1) 100ms";
+      $("s1phone").style.opacity = "1";
+      $("s1phone").style.transform = "scale(1)";
+      $("s1wifi").style.transition = "opacity 600ms 200ms";
+      $("s1wifi").style.opacity = "1";
+      await new Promise(r => setTimeout(r, 2200));
+
+      // S2
+      show(1);
+      $("s2cursor").style.left = "78%";
+      $("s2cursor").style.top = "78%";
+      $("s2cursor").style.transition = "left 900ms cubic-bezier(.22,1,.36,1), top 900ms cubic-bezier(.22,1,.36,1)";
+      requestAnimationFrame(() => {
+        $("s2cursor").style.left = "82%";
+        $("s2cursor").style.top = "84%";
+      });
+      await new Promise(r => setTimeout(r, 1000));
+      const rip = $("s2ripple");
+      const btn = $("s2btn");
+      const br = btn.getBoundingClientRect();
+      const pr = $("s2pc").getBoundingClientRect();
+      rip.style.left = (btn.offsetLeft + btn.offsetWidth/2 - 12) + "px";
+      rip.style.top = (btn.offsetTop + btn.offsetHeight/2 - 12) + "px";
+      rip.style.opacity = "1";
+      rip.style.transform = "scale(1)";
+      rip.style.transition = "transform 450ms ease-out, opacity 450ms ease-out";
+      requestAnimationFrame(() => {
+        rip.style.transform = "scale(4.5)";
+        rip.style.opacity = "0";
+      });
+      btn.style.transform = "scale(0.96)";
+      await new Promise(r => setTimeout(r, 1600));
+
+      // S3
+      show(2);
+      const d = $("s3dialog");
+      d.style.opacity = "0";
+      d.style.transform = "scale(.92)";
+      d.style.transition = "opacity 450ms, transform 550ms cubic-bezier(.22,1,.36,1)";
+      requestAnimationFrame(() => {
+        d.style.opacity = "1";
+        d.style.transform = "scale(1)";
+      });
+      await new Promise(r => setTimeout(r, 3200));
+
+      // S4
+      show(3);
+      for (const id of ["st1","st2","st3"]) {
+        $(id).classList.add("on");
+        await new Promise(r => setTimeout(r, 450));
+      }
+      const line = $("scanline");
+      line.style.opacity = "1";
+      line.style.top = "40px";
+      line.style.transition = "top 1200ms ease-in-out";
+      requestAnimationFrame(() => { line.style.top = "360px"; });
+      await new Promise(r => setTimeout(r, 2400));
+
+      // S5 draw path
+      show(4);
+      const paths = [$("inkPath"), $("inkPathMirror")];
+      paths.forEach(p => {
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+        p.style.transition = "stroke-dashoffset 3200ms linear";
+        requestAnimationFrame(() => { p.style.strokeDashoffset = "0"; });
+      });
+      const pen = $("pen");
+      pen.style.opacity = "1";
+      const keyframes = [
+        [20,70],[28,52],[38,58],[48,55],[58,50],[70,40],[88,42]
+      ];
+      let t0 = performance.now();
+      function movePen(now) {
+        const t = Math.min(1, (now - t0) / 3200);
+        const seg = t * (keyframes.length - 1);
+        const i = Math.floor(seg);
+        const f = seg - i;
+        const a = keyframes[i];
+        const b = keyframes[Math.min(i+1, keyframes.length-1)];
+        pen.style.left = (a[0] + (b[0]-a[0])*f) + "%";
+        pen.style.top = (a[1] + (b[1]-a[1])*f) + "%";
+        if (t < 1) requestAnimationFrame(movePen);
+      }
+      requestAnimationFrame(movePen);
+      await new Promise(r => setTimeout(r, 4200));
+
+      // S6
+      show(5);
+      $("s6card").style.opacity = "0";
+      $("s6card").style.transform = "translateY(18px)";
+      $("s6card").style.transition = "opacity 500ms, transform 600ms cubic-bezier(.22,1,.36,1)";
+      requestAnimationFrame(() => {
+        $("s6card").style.opacity = "1";
+        $("s6card").style.transform = "translateY(0)";
+      });
+      await new Promise(r => setTimeout(r, 2800));
+    }
+
+    document.fonts.ready.then(() => {
+      requestAnimationFrame(() => {
+        window.__ready = true;
+        run();
+      });
+    });
+  </script>
+</body>
+</html>

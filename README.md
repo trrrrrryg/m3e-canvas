@@ -109,10 +109,32 @@ Or on Windows: double-click `start-desktop.bat` (installs deps if needed, then b
 
 In the desktop build, click **Connect** to start a local HTTP + WebSocket server (default TCP `19876`). A phone or tablet on the **same Wi‑Fi** can scan the QR, mirror the desktop window, and send pen/touch/gesture/text back into the canvas.
 
-- Token-authed connect URL; only devices that scanned the QR can join
-- Adaptive capture rate (active drawing ~33 fps, idle ~10 fps)
-- Palm rejection, two-finger pinch/pan, pen pressure ring, IME-safe text entry
-- Design note: [docs/tablet-optimization-plan.md](docs/tablet-optimization-plan.md)
+![Tablet connect walkthrough](docs/demo-assets/tablet-connect-walkthrough.gif)
+
+<p align="center"><sub>Full connect walkthrough: install → Connect → QR → same Wi‑Fi → pen mirror. (<a href="docs/demo-assets/tablet-connect-walkthrough.mp4">mp4 with audio</a> · live screen recording: <a href="docs/demo-assets/electron-tablet-demo.mp4">electron-tablet-demo.mp4</a>)</sub></p>
+
+**Connect in four steps**
+
+1. Install or unpack the Windows build and open **M3E Canvas**.
+2. Put the PC and the tablet/phone on the **same Wi‑Fi**. Allow TCP `19876` if Windows asks (NSIS can add a local-subnet rule during install).
+3. Click **Connect** (bottom-right). The dialog shows a QR code and a `http://…:19876/?token=…` URL.
+4. Scan with the tablet browser. The tablet mirrors the desktop viewport; pen/touch, pinch/pan, and text field IME are relayed back.
+
+**What this desktop fork adds (vs. stock web canvas)**
+
+| Area | Detail |
+| --- | --- |
+| Packaging | Electron shell serves `out/` via `app://`; NSIS + portable Windows installers (`electron-builder.yml`) |
+| AI bridge | `window.m3eAI` routes optional model calls through the main process (no CORS); browser path unchanged |
+| Shell helpers | `window.m3eShell` — version/platform info, open external links |
+| Mirror server | `electron/mirror-server.ts` — token-authed HTTP + WS, binary JPEG frames, action/gesture whitelist |
+| Tablet client | Self-contained `electron/tablet-client.html` — reconnect backoff, palm rejection, pinch/pan, IME wedge |
+| Canvas inject | `app/page.tsx` synthesizes pointer/mouse events, drives native range sliders, panel scroll, pen pressure ring |
+| Connect UI | `components/ConnectPanel.tsx` — QR, URL copy, client count, stop server |
+| Install preflight | `build/installer.nsh` — detect port 19876, optional subnet firewall rule |
+| Design note | [docs/tablet-optimization-plan.md](docs/tablet-optimization-plan.md) (stages 1–2 landed; stage 3 = tablet-native authoring UI not included) |
+
+Token-authed connect URL; only devices that scanned the QR can join. Adaptive capture (active drawing ~33 fps, idle ~10 fps). Palm rejection, two-finger pinch/pan, pen pressure ring, IME-safe text entry.
 
 Windows NSIS install can add a local-subnet firewall rule for port `19876`. If the mirror fails to connect, check that the PC and tablet share a network and that the port is allowed.
 
@@ -249,6 +271,19 @@ npm run build      # 静态导出到 ./out
 ```
 
 项目以静态站点方式导出。若要部署在子路径下（例如 GitHub Pages 的项目站点），请在构建时设置 `NEXT_PUBLIC_BASE_PATH=/仓库名`。`.github/workflows/deploy.yml` 会在每次推送到 `main` 时自动完成这一步并发布到 GitHub Pages。
+
+### 桌面版与平板镜像（本仓库新增）
+
+在原有网页画布之上，本仓库增加了 **Electron 桌面壳** 与 **局域网平板连接**：
+
+1. 从 [Releases](https://github.com/trrrrrryg/m3e-canvas-desktop/releases) 安装 Windows 版（或 `start-desktop.bat` 开发启动）。
+2. 电脑与平板连 **同一 Wi‑Fi**（防火墙放行 TCP `19876`）。
+3. 点击应用右下角 **Connect**，出现二维码与 URL。
+4. 平板扫码后可镜像桌面，并用笔/触控/手势回传到画布。
+
+![平板连接演示](docs/demo-assets/tablet-connect-walkthrough.gif)
+
+完整说明与技术清单见上文英文 **Desktop app (Electron)** / **Tablet mirror** 小节；设计笔记见 [docs/tablet-optimization-plan.md](docs/tablet-optimization-plan.md)。
 
 ### 参与贡献
 
