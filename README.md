@@ -2,7 +2,12 @@
   <img src="app/icon.svg" width="72" alt="" />
 </p>
 
-<h1 align="center">M3E Canvas</h1>
+<h1 align="center">M3E Canvas Desktop</h1>
+
+> **Community desktop build** of [lnkiai/m3e-canvas](https://github.com/lnkiai/m3e-canvas) (MIT).
+> Adds an Electron shell, Windows installers, and a LAN tablet mirror (phone/tablet as a pen surface).
+> Upstream issues and web-only work still belong in the original repo.
+> Contribution proposal for the desktop/tablet feature: [lnkiai/m3e-canvas#427](https://github.com/lnkiai/m3e-canvas/issues/427) · [PR #426](https://github.com/lnkiai/m3e-canvas/pull/426)
 
 <p align="center">
   <strong>Sketch Material 3 Expressive screens in the browser, link them, tap through them, and copy a prompt for your AI coding tool.</strong>
@@ -98,7 +103,24 @@ npm run electron:pack    # unpacked app in ./release/win-unpacked
 npm run electron:dist    # installers (NSIS / portable) in ./release
 ```
 
-The frontend code is unchanged; in a normal browser the AI helpers still fetch directly, and only use the bridge when the desktop `m3eAI` API is present.
+Or on Windows: double-click `start-desktop.bat` (installs deps if needed, then builds and launches).
+
+### Tablet mirror (LAN)
+
+In the desktop build, click **Connect** to start a local HTTP + WebSocket server (default TCP `19876`). A phone or tablet on the **same Wi‑Fi** can scan the QR, mirror the desktop window, and send pen/touch/gesture/text back into the canvas.
+
+- Token-authed connect URL; only devices that scanned the QR can join
+- Adaptive capture rate (active drawing ~33 fps, idle ~10 fps)
+- Palm rejection, two-finger pinch/pan, pen pressure ring, IME-safe text entry
+- Design note: [docs/tablet-optimization-plan.md](docs/tablet-optimization-plan.md)
+
+Windows NSIS install can add a local-subnet firewall rule for port `19876`. If the mirror fails to connect, check that the PC and tablet share a network and that the port is allowed.
+
+### Download
+
+Prebuilt Windows installers are published on the [Releases](https://github.com/trrrrrryg/m3e-canvas-desktop/releases) page of this repository.
+
+The frontend works the same in a normal browser; AI helpers still fetch directly and only use the bridge when the desktop `m3eAI` / `m3eMirror` APIs are present.
 
 ## Contributing
 
